@@ -1,0 +1,109 @@
+http://www.faqs.org/rfcs/rfc2131.html
+
+   Message         Use
+   -------         ---
+
+   DHCPDISCOVER -  Client broadcast to locate available servers.
+
+   DHCPOFFER    -  Server to client in response to DHCPDISCOVER with
+                   offer of configuration parameters.
+
+   DHCPREQUEST  -  Client message to servers either (a) requesting
+                   offered parameters from one server and implicitly
+                   declining offers from all others, (b) confirming
+                   correctness of previously allocated address after,
+                   e.g., system reboot, or (c) extending the lease on a
+                   particular network address.
+
+   DHCPACK      -  Server to client with configuration parameters,
+                   including committed network address.
+
+   DHCPNAK      -  Server to client indicating client's notion of network
+                   address is incorrect (e.g., client has moved to new
+                   subnet) or client's lease as expired
+
+   DHCPDECLINE  -  Client to server indicating network address is already
+                   in use.
+
+   DHCPRELEASE  -  Client to server relinquishing network address and
+                   cancelling remaining lease.
+
+   DHCPINFORM   -  Client to server, asking only for local configuration
+                   parameters; client already has externally configured
+                   network address.
+
+-------------------------------------------------
+
+request
+# Header fields
+op : BOOTREQUEST
+htype : 1
+hlen : 6
+hops : 0
+xid : 2771437057
+secs : 0
+flags : 0
+ciaddr : 0.0.0.0
+yiaddr : 0.0.0.0
+siaddr : 0.0.0.0
+giaddr : 0.0.0.0
+chaddr : 6c:62:6d:ce:1a:34
+sname : 
+file : 
+# Options fields
+client_identifier : 
+client_fqdn : 
+server_identifier : 3232238081
+vendor_class : 
+parameter_request_list : subnet_mask,domain_name,router,domain_name_server,nbns,nd_node_type,nb_scope,perform_router_discovery,static_route,classless_static_route,249,vendor_specific
+host_name : chikalyn
+request_ip_address : 192.168.10.152
+dhcp_message_type : DHCP_REQUEST
+
+-----------------------
+
+4.3.5 DHCPINFORM message
+
+   The server responds to a DHCPINFORM message by sending a DHCPACK
+   message directly to the address given in the 'ciaddr' field of the
+   DHCPINFORM message.  The server MUST NOT send a lease expiration time
+   to the client and SHOULD NOT fill in 'yiaddr'.  The server includes
+   other parameters in the DHCPACK message as defined in section 4.3.1.
+
+DHCPREQUEST generated during INIT-REBOOT state:
+
+      'server identifier' MUST NOT be filled in, 'requested IP address'
+      option MUST be filled in with client's notion of its previously
+      assigned address. 'ciaddr' MUST be zero. The client is seeking to
+      verify a previously allocated, cached configuration. Server SHOULD
+      send a DHCPNAK message to the client if the 'requested IP address'
+      is incorrect, or is on the wrong network.
+
+      Determining whether a client in the INIT-REBOOT state is on the
+      correct network is done by examining the contents of 'giaddr', the
+      'requested IP address' option, and a database lookup. If the DHCP
+      server detects that the client is on the wrong net (i.e., the
+      result of applying the local subnet mask or remote subnet mask (if
+      'giaddr' is not zero) to 'requested IP address' option value
+      doesn't match reality), then the server SHOULD send a DHCPNAK
+      message to the client.
+
+      If the network is correct, then the DHCP server should check if
+      the client's notion of its IP address is correct. If not, then the
+      server SHOULD send a DHCPNAK message to the client. If the DHCP
+      server has no record of this client, then it MUST remain silent,
+      and MAY output a warning to the network administrator. This
+      behavior is necessary for peaceful coexistence of non-
+      communicating DHCP servers on the same wire.
+
+      If 'giaddr' is 0x0 in the DHCPREQUEST message, the client is on
+      the same subnet as the server.  The server MUST broadcast the
+      DHCPNAK message to the 0xffffffff broadcast address because the
+      client may not have a correct network address or subnet mask, and
+      the client may not be answering ARP requests.
+
+      If 'giaddr' is set in the DHCPREQUEST message, the client is on a
+      different subnet.  The server MUST set the broadcast bit in the
+      DHCPNAK, so that the relay agent will broadcast the DHCPNAK to the
+      client, because the client may not have a correct network address
+      or subnet mask, and the client may not be answering ARP requests.
